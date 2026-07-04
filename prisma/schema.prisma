@@ -93,6 +93,7 @@ model Device {
   replacesDevice    Device?   @relation("DeviceReplacement", fields: [replacesDeviceId], references: [id])
   replacedByDevice  Device?   @relation("DeviceReplacement")
   createdAt         DateTime  @default(now())
+  maintenanceSchedules MaintenanceSchedule[]
 
   @@map("devices")
 }
@@ -110,4 +111,17 @@ model Vendor {
   createdAt      DateTime     @default(now())
 
   @@map("vendors")
+}
+
+model MaintenanceSchedule {
+  id              String    @id @default(cuid())
+  deviceId        String
+  device          Device    @relation(fields: [deviceId], references: [id])
+  taskDescription String
+  intervalDays    Int
+  lastCompletedAt DateTime?
+  nextDueAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  @@map("maintenance_schedules")
 }
