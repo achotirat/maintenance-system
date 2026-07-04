@@ -55,6 +55,7 @@ model Property {
   type           String
   createdAt      DateTime     @default(now())
   locations      Location[]
+  devices        Device[]
 
   @@map("properties")
 }
@@ -65,7 +66,32 @@ model Location {
   property   Property @relation(fields: [propertyId], references: [id])
   name       String
   createdAt  DateTime @default(now())
+  devices    Device[]
 
   @@unique([propertyId, name])
   @@map("locations")
+}
+
+model Device {
+  id                String    @id @default(cuid())
+  propertyId        String
+  property          Property  @relation(fields: [propertyId], references: [id])
+  locationId        String
+  location          Location  @relation(fields: [locationId], references: [id])
+  category          String
+  brand             String
+  model             String
+  purchaseDate      DateTime?
+  purchaseVendor    String?
+  warrantyMonths    Int?
+  warrantyExpiresAt DateTime?
+  receiptPhotoUrl   String?
+  notes             String?
+  archivedAt        DateTime?
+  replacesDeviceId  String?   @unique
+  replacesDevice    Device?   @relation("DeviceReplacement", fields: [replacesDeviceId], references: [id])
+  replacedByDevice  Device?   @relation("DeviceReplacement")
+  createdAt         DateTime  @default(now())
+
+  @@map("devices")
 }
