@@ -94,6 +94,7 @@ model Device {
   replacedByDevice  Device?   @relation("DeviceReplacement")
   createdAt         DateTime  @default(now())
   maintenanceSchedules MaintenanceSchedule[]
+  repairTickets     RepairTicket[]
 
   @@map("devices")
 }
@@ -109,6 +110,7 @@ model Vendor {
   specialty      String?
   notes          String?
   createdAt      DateTime     @default(now())
+  repairTickets  RepairTicket[]
 
   @@map("vendors")
 }
@@ -124,4 +126,26 @@ model MaintenanceSchedule {
   createdAt       DateTime  @default(now())
 
   @@map("maintenance_schedules")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model RepairTicket {
+  id                 String       @id @default(cuid())
+  deviceId           String
+  device             Device       @relation(fields: [deviceId], references: [id])
+  status             TicketStatus @default(OPEN)
+  problemDescription String
+  vendorId           String?
+  vendor             Vendor?      @relation(fields: [vendorId], references: [id])
+  cost               Decimal?     @db.Decimal(10, 2)
+  resolutionNotes    String?
+  openedAt           DateTime     @default(now())
+  resolvedAt         DateTime?
+
+  @@map("repair_tickets")
 }
