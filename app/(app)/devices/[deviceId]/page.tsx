@@ -26,6 +26,28 @@ export default async function DeviceDetailPage({
       </h1>
       <p>Location: {device.location.name}</p>
       <p>Warranty: {warrantyStatus(device)}</p>
+      {!device.archivedAt && (
+        <p>
+          <a href={`/devices/${deviceId}/replace`}>Replace this device</a>
+        </p>
+      )}
+      {device.archivedAt && <p>This device was archived on {device.archivedAt.toDateString()}.</p>}
+      {device.replacesDevice && (
+        <p>
+          Replaces:{' '}
+          <a href={`/devices/${device.replacesDevice.id}`}>
+            {device.replacesDevice.brand} {device.replacesDevice.model}
+          </a>
+        </p>
+      )}
+      {device.replacedByDevice && (
+        <p>
+          Replaced by:{' '}
+          <a href={`/devices/${device.replacedByDevice.id}`}>
+            {device.replacedByDevice.brand} {device.replacedByDevice.model}
+          </a>
+        </p>
+      )}
 
       <h2>Maintenance schedules</h2>
       <ul>
