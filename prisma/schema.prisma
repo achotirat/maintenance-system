@@ -17,6 +17,7 @@ model Organization {
   name        String
   createdAt   DateTime     @default(now())
   memberships Membership[]
+  properties  Property[]
 
   @@map("organizations")
 }
@@ -43,4 +44,28 @@ model Membership {
 
   @@unique([userId, organizationId])
   @@map("memberships")
+}
+
+model Property {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  address        String
+  type           String
+  createdAt      DateTime     @default(now())
+  locations      Location[]
+
+  @@map("properties")
+}
+
+model Location {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  name       String
+  createdAt  DateTime @default(now())
+
+  @@unique([propertyId, name])
+  @@map("locations")
 }
