@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { listLocations } from '@/lib/services/locations'
 import { createLocationAction } from './actions'
 
@@ -12,6 +13,7 @@ export default async function PropertyDetailPage({
 
   return (
     <div>
+      <Link href={`/properties/${propertyId}/devices`}>View devices</Link>
       <h1>Locations</h1>
       <ul>
         {locations.map((l) => (
