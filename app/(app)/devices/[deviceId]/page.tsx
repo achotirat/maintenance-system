@@ -28,6 +28,13 @@ export default async function DeviceDetailPage({
       </h1>
       <p>Location: {device.location.name}</p>
       <p>Warranty: {warrantyStatus(device)}</p>
+      {device.receiptPhotoUrl && (
+        <p>
+          <a href={device.receiptPhotoUrl} target="_blank" rel="noopener noreferrer">
+            View receipt/warranty photo
+          </a>
+        </p>
+      )}
       {!device.archivedAt && (
         <p>
           <a href={`/devices/${deviceId}/replace`}>Replace this device</a>

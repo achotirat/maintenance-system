@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { updateDevice } from '@/lib/services/devices'
 import { requireDeviceAccess } from '@/lib/auth-helpers'
+import { saveUploadedFile } from '@/lib/services/local-upload'
 
 export async function updateDeviceAction(deviceId: string, formData: FormData) {
   await requireDeviceAccess(deviceId)
@@ -11,6 +12,10 @@ export async function updateDeviceAction(deviceId: string, formData: FormData) {
   const notes = String(formData.get('notes') ?? '')
   const purchaseDateRaw = String(formData.get('purchaseDate') ?? '')
   const warrantyMonthsRaw = String(formData.get('warrantyMonths') ?? '')
+  const receiptPhoto = formData.get('receiptPhoto') as File | null
+
+  const receiptPhotoUrl =
+    receiptPhoto && receiptPhoto.size > 0 ? await saveUploadedFile(receiptPhoto) : undefined
 
   await updateDevice({
     deviceId,
@@ -19,6 +24,7 @@ export async function updateDeviceAction(deviceId: string, formData: FormData) {
     notes: notes || undefined,
     purchaseDate: purchaseDateRaw ? new Date(purchaseDateRaw) : undefined,
     warrantyMonths: warrantyMonthsRaw ? Number(warrantyMonthsRaw) : undefined,
+    receiptPhotoUrl,
   })
 
   redirect(`/devices/${deviceId}`)

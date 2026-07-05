@@ -15,7 +15,7 @@ export default async function EditDevicePage({
   const boundAction = updateDeviceAction.bind(null, deviceId)
 
   return (
-    <form action={boundAction}>
+    <form action={boundAction} encType="multipart/form-data">
       <h1>Edit device</h1>
       <input name="brand" defaultValue={device.brand} required />
       <input name="model" defaultValue={device.model} required />
@@ -26,6 +26,7 @@ export default async function EditDevicePage({
       />
       <input name="warrantyMonths" type="number" defaultValue={device.warrantyMonths ?? undefined} />
       <textarea name="notes" defaultValue={device.notes ?? ''} />
+      <input name="receiptPhoto" type="file" accept="image/*,.pdf" />
       <button type="submit">Save</button>
     </form>
   )

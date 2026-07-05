@@ -30,7 +30,7 @@ export default async function DevicesPage({
         ))}
       </ul>
 
-      <form action={boundAction}>
+      <form action={boundAction} encType="multipart/form-data">
         <h2>Add device</h2>
         <select name="locationId" required>
           {locations.map((l) => (
@@ -44,6 +44,7 @@ export default async function DevicesPage({
         <input name="model" placeholder="Model" required />
         <input name="purchaseDate" type="date" />
         <input name="warrantyMonths" type="number" placeholder="Warranty (months)" />
+        <input name="receiptPhoto" type="file" accept="image/*,.pdf" />
         <button type="submit">Add device</button>
       </form>
     </div>
