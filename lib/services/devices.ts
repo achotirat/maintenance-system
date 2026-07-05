@@ -60,6 +60,40 @@ export async function getDeviceWithHistory(deviceId: string) {
   })
 }
 
+export async function updateDevice(params: {
+  deviceId: string
+  locationId?: string
+  category?: string
+  brand?: string
+  model?: string
+  purchaseDate?: Date
+  purchaseVendor?: string
+  warrantyMonths?: number
+  receiptPhotoUrl?: string
+  notes?: string
+}) {
+  const existing = await prisma.device.findUniqueOrThrow({ where: { id: params.deviceId } })
+
+  const purchaseDate = params.purchaseDate ?? existing.purchaseDate ?? undefined
+  const warrantyMonths = params.warrantyMonths ?? existing.warrantyMonths ?? undefined
+
+  return prisma.device.update({
+    where: { id: params.deviceId },
+    data: {
+      ...(params.locationId !== undefined && { locationId: params.locationId }),
+      ...(params.category !== undefined && { category: params.category }),
+      ...(params.brand !== undefined && { brand: params.brand }),
+      ...(params.model !== undefined && { model: params.model }),
+      ...(params.purchaseDate !== undefined && { purchaseDate: params.purchaseDate }),
+      ...(params.purchaseVendor !== undefined && { purchaseVendor: params.purchaseVendor }),
+      ...(params.warrantyMonths !== undefined && { warrantyMonths: params.warrantyMonths }),
+      ...(params.receiptPhotoUrl !== undefined && { receiptPhotoUrl: params.receiptPhotoUrl }),
+      ...(params.notes !== undefined && { notes: params.notes }),
+      warrantyExpiresAt: computeWarrantyExpiresAt(purchaseDate, warrantyMonths),
+    },
+  })
+}
+
 export function warrantyStatus(
   device: { warrantyExpiresAt: Date | null },
   now: Date = new Date()

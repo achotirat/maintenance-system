@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDb } from '../test-helpers/reset-db'
 import { createOrganizationWithOwner } from './organizations'
-import { createProperty, listProperties } from './properties'
+import { createProperty, listProperties, updateProperty } from './properties'
 import { listLocations } from './locations'
 
 describe('properties', () => {
@@ -49,5 +49,25 @@ describe('properties', () => {
 
     const propertiesForA = await listProperties(orgA.id)
     expect(propertiesForA.map((p) => p.name)).toEqual(['A Property'])
+  })
+
+  it('updates only the provided fields', async () => {
+    const org = await createOrganizationWithOwner({
+      organizationName: 'Org C',
+      ownerEmail: 'c@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'C',
+    })
+    const property = await createProperty({
+      organizationId: org.id,
+      name: 'Old Name',
+      address: 'Old Address',
+      type: 'hotel',
+    })
+
+    const updated = await updateProperty({ propertyId: property.id, name: 'New Name' })
+
+    expect(updated.name).toBe('New Name')
+    expect(updated.address).toBe('Old Address')
   })
 })

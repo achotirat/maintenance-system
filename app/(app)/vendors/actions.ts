@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getPrimaryOrganizationId } from '@/lib/auth-helpers'
-import { createVendor } from '@/lib/services/vendors'
+import { createVendor, updateVendor, deleteVendor } from '@/lib/services/vendors'
 
 export async function createVendorAction(formData: FormData) {
   const organizationId = await getPrimaryOrganizationId()
@@ -21,5 +21,24 @@ export async function createVendorAction(formData: FormData) {
     specialty: specialty || undefined,
   })
 
+  revalidatePath('/vendors')
+}
+
+export async function updateVendorAction(vendorId: string, formData: FormData) {
+  const name = String(formData.get('name') ?? '')
+  const phone = String(formData.get('phone') ?? '')
+  const specialty = String(formData.get('specialty') ?? '')
+
+  await updateVendor({
+    vendorId,
+    name: name || undefined,
+    phone: phone || undefined,
+    specialty: specialty || undefined,
+  })
+  revalidatePath('/vendors')
+}
+
+export async function deleteVendorAction(vendorId: string) {
+  await deleteVendor(vendorId)
   revalidatePath('/vendors')
 }

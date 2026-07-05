@@ -3,7 +3,7 @@ import { resetDb } from '../test-helpers/reset-db'
 import { createOrganizationWithOwner } from './organizations'
 import { createProperty } from './properties'
 import { listLocations } from './locations'
-import { createDevice, listDevices, getDeviceWithHistory, warrantyStatus } from './devices'
+import { createDevice, listDevices, getDeviceWithHistory, warrantyStatus, updateDevice } from './devices'
 
 describe('devices', () => {
   let propertyId: string
@@ -66,6 +66,26 @@ describe('devices', () => {
 
     const withHistory = await getDeviceWithHistory(device.id)
     expect(withHistory?.location.id).toBe(locationId)
+  })
+
+  it('updates fields and recomputes warrantyExpiresAt when purchase info changes', async () => {
+    const device = await createDevice({
+      propertyId,
+      locationId,
+      category: 'AC',
+      brand: 'Daikin',
+      model: 'FTKF25',
+      purchaseDate: new Date('2026-01-01'),
+      warrantyMonths: 12,
+    })
+
+    const updated = await updateDevice({
+      deviceId: device.id,
+      purchaseDate: new Date('2026-02-01'),
+      warrantyMonths: 24,
+    })
+
+    expect(updated.warrantyExpiresAt).toEqual(new Date('2028-02-01'))
   })
 })
 

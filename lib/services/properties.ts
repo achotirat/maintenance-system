@@ -25,3 +25,19 @@ export async function listProperties(organizationId: string) {
     orderBy: { name: 'asc' },
   })
 }
+
+export async function updateProperty(params: {
+  propertyId: string
+  name?: string
+  address?: string
+  type?: string
+}) {
+  return prisma.property.update({
+    where: { id: params.propertyId },
+    data: {
+      ...(params.name !== undefined && { name: params.name }),
+      ...(params.address !== undefined && { address: params.address }),
+      ...(params.type !== undefined && { type: params.type }),
+    },
+  })
+}

@@ -1,6 +1,6 @@
 import { getPrimaryOrganizationId } from '@/lib/auth-helpers'
 import { listVendors } from '@/lib/services/vendors'
-import { createVendorAction } from './actions'
+import { createVendorAction, updateVendorAction, deleteVendorAction } from './actions'
 
 export default async function VendorsPage() {
   const organizationId = await getPrimaryOrganizationId()
@@ -12,7 +12,15 @@ export default async function VendorsPage() {
       <ul>
         {vendors.map((v) => (
           <li key={v.id}>
-            {v.name} — {v.specialty} — {v.phone ?? v.line ?? 'no contact info'}
+            <form action={updateVendorAction.bind(null, v.id)} style={{ display: 'inline' }}>
+              <input name="name" defaultValue={v.name} />
+              <input name="phone" defaultValue={v.phone ?? ''} />
+              <input name="specialty" defaultValue={v.specialty ?? ''} />
+              <button type="submit">Save</button>
+            </form>
+            <form action={deleteVendorAction.bind(null, v.id)} style={{ display: 'inline' }}>
+              <button type="submit">Delete</button>
+            </form>
           </li>
         ))}
       </ul>

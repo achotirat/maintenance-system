@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDb } from '../test-helpers/reset-db'
 import { createOrganizationWithOwner } from './organizations'
-import { createVendor, listVendors } from './vendors'
+import { createVendor, listVendors, updateVendor, deleteVendor } from './vendors'
 
 describe('vendors', () => {
   beforeEach(async () => {
@@ -27,5 +27,22 @@ describe('vendors', () => {
 
     const vendorsForA = await listVendors(orgA.id)
     expect(vendorsForA.map((v) => v.name)).toEqual(['Doorlock Fixers Co'])
+  })
+
+  it('updates and deletes a vendor', async () => {
+    const org = await createOrganizationWithOwner({
+      organizationName: 'Org D',
+      ownerEmail: 'd@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'D',
+    })
+    const vendor = await createVendor({ organizationId: org.id, name: 'Old Name' })
+
+    const updated = await updateVendor({ vendorId: vendor.id, name: 'New Name' })
+    expect(updated.name).toBe('New Name')
+
+    await deleteVendor(vendor.id)
+    const remaining = await listVendors(org.id)
+    expect(remaining).toHaveLength(0)
   })
 })

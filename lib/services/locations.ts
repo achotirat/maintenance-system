@@ -35,6 +35,31 @@ export async function createLocation(params: {
   })
 }
 
+export async function renameLocation(params: {
+  locationId: string
+  name: string
+  force?: boolean
+}) {
+  const location = await prisma.location.findUniqueOrThrow({ where: { id: params.locationId } })
+  const others = (await listLocations(location.propertyId)).filter((l) => l.id !== params.locationId)
+  const trimmedName = params.name.trim()
+
+  if (!params.force) {
+    const similar = findSimilarStrings(
+      trimmedName,
+      others.map((l) => l.name)
+    )
+    if (similar.length > 0) {
+      throw new SimilarLocationExistsError(similar)
+    }
+  }
+
+  return prisma.location.update({
+    where: { id: params.locationId },
+    data: { name: trimmedName },
+  })
+}
+
 export async function ensureDefaultLocation(propertyId: string) {
   const existing = await prisma.location.findFirst({
     where: { propertyId, name: 'Whole Property' },
