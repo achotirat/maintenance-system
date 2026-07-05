@@ -48,3 +48,9 @@ export async function requireDeviceAccess(deviceId: string) {
   await requireOrgMembership(device.property.organizationId)
   return device
 }
+
+export async function requireVendorAccess(vendorId: string) {
+  const vendor = await prisma.vendor.findUniqueOrThrow({ where: { id: vendorId } })
+  await requireOrgMembership(vendor.organizationId)
+  return vendor
+}

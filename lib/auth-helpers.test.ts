@@ -4,6 +4,7 @@ import { createOrganizationWithOwner } from './services/organizations'
 import { createProperty } from './services/properties'
 import { listLocations } from './services/locations'
 import { createDevice } from './services/devices'
+import { createVendor } from './services/vendors'
 
 vi.mock('./auth', () => ({
   auth: vi.fn(),
@@ -17,6 +18,7 @@ import {
   getPrimaryOrganizationId,
   requirePropertyAccess,
   requireDeviceAccess,
+  requireVendorAccess,
   UnauthorizedError,
   ForbiddenError,
 } from './auth-helpers'
@@ -212,5 +214,59 @@ describe('requireDeviceAccess', () => {
     } as never)
 
     await expect(requireDeviceAccess(device.id)).rejects.toThrow(ForbiddenError)
+  })
+})
+
+describe('requireVendorAccess', () => {
+  beforeEach(async () => {
+    await resetDb()
+    vi.mocked(auth).mockReset()
+  })
+
+  it('returns the vendor when the session belongs to its organization', async () => {
+    const org = await createOrganizationWithOwner({
+      organizationName: 'Sunset Villas',
+      ownerEmail: 'owner3@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'Owner',
+    })
+    const vendor = await createVendor({
+      organizationId: org.id,
+      name: 'Acme Repairs',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: org.id, role: 'STAFF' }],
+    } as never)
+
+    const result = await requireVendorAccess(vendor.id)
+    expect(result.id).toBe(vendor.id)
+  })
+
+  it('throws ForbiddenError when the session belongs to a different organization', async () => {
+    const orgA = await createOrganizationWithOwner({
+      organizationName: 'Org E',
+      ownerEmail: 'e@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'E',
+    })
+    const orgB = await createOrganizationWithOwner({
+      organizationName: 'Org F',
+      ownerEmail: 'f@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'F',
+    })
+    const vendor = await createVendor({
+      organizationId: orgA.id,
+      name: 'Acme Repairs',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: orgB.id, role: 'STAFF' }],
+    } as never)
+
+    await expect(requireVendorAccess(vendor.id)).rejects.toThrow(ForbiddenError)
   })
 })

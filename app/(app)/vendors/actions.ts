@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getPrimaryOrganizationId } from '@/lib/auth-helpers'
+import { getPrimaryOrganizationId, requireVendorAccess } from '@/lib/auth-helpers'
 import { createVendor, updateVendor, deleteVendor } from '@/lib/services/vendors'
 
 export async function createVendorAction(formData: FormData) {
@@ -25,6 +25,7 @@ export async function createVendorAction(formData: FormData) {
 }
 
 export async function updateVendorAction(vendorId: string, formData: FormData) {
+  await requireVendorAccess(vendorId)
   const name = String(formData.get('name') ?? '')
   const phone = String(formData.get('phone') ?? '')
   const specialty = String(formData.get('specialty') ?? '')
@@ -39,6 +40,7 @@ export async function updateVendorAction(vendorId: string, formData: FormData) {
 }
 
 export async function deleteVendorAction(vendorId: string) {
+  await requireVendorAccess(vendorId)
   await deleteVendor(vendorId)
   revalidatePath('/vendors')
 }
