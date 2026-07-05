@@ -1,0 +1,151 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+  properties  Property[]
+  vendors     Vendor[]
+
+  @@map("organizations")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime     @default(now())
+  memberships  Membership[]
+
+  @@map("users")
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  role           Role
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
+  @@map("memberships")
+}
+
+model Property {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  address        String
+  type           String
+  createdAt      DateTime     @default(now())
+  locations      Location[]
+  devices        Device[]
+
+  @@map("properties")
+}
+
+model Location {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  name       String
+  createdAt  DateTime @default(now())
+  devices    Device[]
+
+  @@unique([propertyId, name])
+  @@map("locations")
+}
+
+model Device {
+  id                String    @id @default(cuid())
+  propertyId        String
+  property          Property  @relation(fields: [propertyId], references: [id])
+  locationId        String
+  location          Location  @relation(fields: [locationId], references: [id])
+  category          String
+  brand             String
+  model             String
+  purchaseDate      DateTime?
+  purchaseVendor    String?
+  warrantyMonths    Int?
+  warrantyExpiresAt DateTime?
+  receiptPhotoUrl   String?
+  notes             String?
+  archivedAt        DateTime?
+  replacesDeviceId  String?   @unique
+  replacesDevice    Device?   @relation("DeviceReplacement", fields: [replacesDeviceId], references: [id])
+  replacedByDevice  Device?   @relation("DeviceReplacement")
+  createdAt         DateTime  @default(now())
+  maintenanceSchedules MaintenanceSchedule[]
+  repairTickets     RepairTicket[]
+
+  @@map("devices")
+}
+
+model Vendor {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  phone          String?
+  line           String?
+  email          String?
+  specialty      String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  repairTickets  RepairTicket[]
+
+  @@map("vendors")
+}
+
+model MaintenanceSchedule {
+  id              String    @id @default(cuid())
+  deviceId        String
+  device          Device    @relation(fields: [deviceId], references: [id])
+  taskDescription String
+  intervalDays    Int
+  lastCompletedAt DateTime?
+  nextDueAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  @@map("maintenance_schedules")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model RepairTicket {
+  id                 String       @id @default(cuid())
+  deviceId           String
+  device             Device       @relation(fields: [deviceId], references: [id])
+  status             TicketStatus @default(OPEN)
+  problemDescription String
+  vendorId           String?
+  vendor             Vendor?      @relation(fields: [vendorId], references: [id])
+  cost               Decimal?     @db.Decimal(10, 2)
+  resolutionNotes    String?
+  openedAt           DateTime     @default(now())
+  resolvedAt         DateTime?
+
+  @@map("repair_tickets")
+}

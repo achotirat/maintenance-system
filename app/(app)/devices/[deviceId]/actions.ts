@@ -1,0 +1,54 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createMaintenanceSchedule, recordCompletion } from '@/lib/services/maintenance-schedules'
+import { createRepairTicket, transitionTicket } from '@/lib/services/repair-tickets'
+import { requireDeviceAccess, ForbiddenError } from '@/lib/auth-helpers'
+import { prisma } from '@/lib/db'
+
+export async function createScheduleAction(deviceId: string, formData: FormData) {
+  await requireDeviceAccess(deviceId)
+  const taskDescription = String(formData.get('taskDescription') ?? '')
+  const intervalDays = Number(formData.get('intervalDays') ?? '')
+
+  if (!taskDescription || !intervalDays) {
+    throw new Error('Task description and interval are required')
+  }
+
+  await createMaintenanceSchedule({ deviceId, taskDescription, intervalDays })
+  revalidatePath(`/devices/${deviceId}`)
+}
+
+export async function completeScheduleAction(deviceId: string, scheduleId: string) {
+  await requireDeviceAccess(deviceId)
+  const schedule = await prisma.maintenanceSchedule.findUniqueOrThrow({ where: { id: scheduleId } })
+  if (schedule.deviceId !== deviceId) throw new ForbiddenError('Schedule does not belong to this device')
+  await recordCompletion(scheduleId)
+  revalidatePath(`/devices/${deviceId}`)
+}
+
+export async function createTicketAction(deviceId: string, formData: FormData) {
+  await requireDeviceAccess(deviceId)
+  const problemDescription = String(formData.get('problemDescription') ?? '')
+  if (!problemDescription) throw new Error('Problem description is required')
+
+  await createRepairTicket({ deviceId, problemDescription })
+  revalidatePath(`/devices/${deviceId}`)
+}
+
+export async function transitionTicketAction(deviceId: string, ticketId: string, formData: FormData) {
+  await requireDeviceAccess(deviceId)
+  const ticket = await prisma.repairTicket.findUniqueOrThrow({ where: { id: ticketId } })
+  if (ticket.deviceId !== deviceId) throw new ForbiddenError('Ticket does not belong to this device')
+  const status = String(formData.get('status') ?? '') as 'IN_PROGRESS' | 'RESOLVED'
+  const costRaw = String(formData.get('cost') ?? '')
+  const resolutionNotes = String(formData.get('resolutionNotes') ?? '')
+
+  await transitionTicket({
+    ticketId,
+    status,
+    cost: costRaw ? Number(costRaw) : undefined,
+    resolutionNotes: resolutionNotes || undefined,
+  })
+  revalidatePath(`/devices/${deviceId}`)
+}
