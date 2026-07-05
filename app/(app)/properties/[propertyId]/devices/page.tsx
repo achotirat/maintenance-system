@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { listDevices, warrantyStatus } from '@/lib/services/devices'
 import { listLocations } from '@/lib/services/locations'
+import { requirePropertyAccess } from '@/lib/auth-helpers'
 import { createDeviceAction } from './actions'
 
 export default async function DevicesPage({
@@ -9,6 +10,7 @@ export default async function DevicesPage({
   params: Promise<{ propertyId: string }>
 }) {
   const { propertyId } = await params
+  await requirePropertyAccess(propertyId)
   const [devices, locations] = await Promise.all([
     listDevices(propertyId),
     listLocations(propertyId),

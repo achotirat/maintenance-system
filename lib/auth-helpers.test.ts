@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { resetDb } from './test-helpers/reset-db'
+import { createOrganizationWithOwner } from './services/organizations'
+import { createProperty } from './services/properties'
+import { listLocations } from './services/locations'
+import { createDevice } from './services/devices'
 
 vi.mock('./auth', () => ({
   auth: vi.fn(),
@@ -10,6 +15,8 @@ import {
   requireOrgMembership,
   requireOrgAdmin,
   getPrimaryOrganizationId,
+  requirePropertyAccess,
+  requireDeviceAccess,
   UnauthorizedError,
   ForbiddenError,
 } from './auth-helpers'
@@ -73,5 +80,137 @@ describe('auth-helpers', () => {
     } as never)
 
     await expect(getPrimaryOrganizationId()).resolves.toBe('org1')
+  })
+})
+
+describe('requirePropertyAccess', () => {
+  beforeEach(async () => {
+    await resetDb()
+    vi.mocked(auth).mockReset()
+  })
+
+  it('returns the property when the session belongs to its organization', async () => {
+    const org = await createOrganizationWithOwner({
+      organizationName: 'Sunset Villas',
+      ownerEmail: 'owner@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'Owner',
+    })
+    const property = await createProperty({
+      organizationId: org.id,
+      name: 'Villa 1',
+      address: '123 Beach Rd',
+      type: 'villa',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: org.id, role: 'STAFF' }],
+    } as never)
+
+    const result = await requirePropertyAccess(property.id)
+    expect(result.id).toBe(property.id)
+  })
+
+  it('throws ForbiddenError when the session belongs to a different organization', async () => {
+    const orgA = await createOrganizationWithOwner({
+      organizationName: 'Org A',
+      ownerEmail: 'a@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'A',
+    })
+    const orgB = await createOrganizationWithOwner({
+      organizationName: 'Org B',
+      ownerEmail: 'b@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'B',
+    })
+    const property = await createProperty({
+      organizationId: orgA.id,
+      name: 'Villa 1',
+      address: '123 Beach Rd',
+      type: 'villa',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: orgB.id, role: 'STAFF' }],
+    } as never)
+
+    await expect(requirePropertyAccess(property.id)).rejects.toThrow(ForbiddenError)
+  })
+})
+
+describe('requireDeviceAccess', () => {
+  beforeEach(async () => {
+    await resetDb()
+    vi.mocked(auth).mockReset()
+  })
+
+  it('returns the device when the session belongs to its property\'s organization', async () => {
+    const org = await createOrganizationWithOwner({
+      organizationName: 'Sunset Villas',
+      ownerEmail: 'owner2@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'Owner',
+    })
+    const property = await createProperty({
+      organizationId: org.id,
+      name: 'Villa 1',
+      address: '123 Beach Rd',
+      type: 'villa',
+    })
+    const locationId = (await listLocations(property.id))[0].id
+    const device = await createDevice({
+      propertyId: property.id,
+      locationId,
+      category: 'Doorlock',
+      brand: 'Samsung',
+      model: 'SHP-DP728',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: org.id, role: 'STAFF' }],
+    } as never)
+
+    const result = await requireDeviceAccess(device.id)
+    expect(result.id).toBe(device.id)
+  })
+
+  it('throws ForbiddenError when the session belongs to a different organization', async () => {
+    const orgA = await createOrganizationWithOwner({
+      organizationName: 'Org C',
+      ownerEmail: 'c@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'C',
+    })
+    const orgB = await createOrganizationWithOwner({
+      organizationName: 'Org D',
+      ownerEmail: 'd@example.com',
+      ownerPassword: 'password123',
+      ownerName: 'D',
+    })
+    const property = await createProperty({
+      organizationId: orgA.id,
+      name: 'Villa 1',
+      address: '123 Beach Rd',
+      type: 'villa',
+    })
+    const locationId = (await listLocations(property.id))[0].id
+    const device = await createDevice({
+      propertyId: property.id,
+      locationId,
+      category: 'Doorlock',
+      brand: 'Samsung',
+      model: 'SHP-DP728',
+    })
+
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'u1' },
+      memberships: [{ organizationId: orgB.id, role: 'STAFF' }],
+    } as never)
+
+    await expect(requireDeviceAccess(device.id)).rejects.toThrow(ForbiddenError)
   })
 })

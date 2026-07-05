@@ -2,8 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { updateDevice } from '@/lib/services/devices'
+import { requireDeviceAccess } from '@/lib/auth-helpers'
 
 export async function updateDeviceAction(deviceId: string, formData: FormData) {
+  await requireDeviceAccess(deviceId)
   const brand = String(formData.get('brand') ?? '')
   const model = String(formData.get('model') ?? '')
   const notes = String(formData.get('notes') ?? '')

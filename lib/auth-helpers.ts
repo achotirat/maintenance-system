@@ -1,4 +1,5 @@
 import { auth } from './auth'
+import { prisma } from './db'
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -31,4 +32,19 @@ export async function getPrimaryOrganizationId() {
     throw new ForbiddenError('No organization membership')
   }
   return session.memberships[0].organizationId
+}
+
+export async function requirePropertyAccess(propertyId: string) {
+  const property = await prisma.property.findUniqueOrThrow({ where: { id: propertyId } })
+  await requireOrgMembership(property.organizationId)
+  return property
+}
+
+export async function requireDeviceAccess(deviceId: string) {
+  const device = await prisma.device.findUniqueOrThrow({
+    where: { id: deviceId },
+    include: { property: true },
+  })
+  await requireOrgMembership(device.property.organizationId)
+  return device
 }

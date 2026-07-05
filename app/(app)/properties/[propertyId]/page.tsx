@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { listLocations } from '@/lib/services/locations'
+import { requirePropertyAccess } from '@/lib/auth-helpers'
 import { createLocationAction } from './actions'
 
 export default async function PropertyDetailPage({
@@ -8,6 +9,7 @@ export default async function PropertyDetailPage({
   params: Promise<{ propertyId: string }>
 }) {
   const { propertyId } = await params
+  await requirePropertyAccess(propertyId)
   const locations = await listLocations(propertyId)
   const boundAction = createLocationAction.bind(null, propertyId)
 

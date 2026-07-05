@@ -1,5 +1,4 @@
-import { listProperties } from '@/lib/services/properties'
-import { getPrimaryOrganizationId } from '@/lib/auth-helpers'
+import { requirePropertyAccess } from '@/lib/auth-helpers'
 import { updatePropertyAction } from './actions'
 
 export default async function EditPropertyPage({
@@ -8,9 +7,7 @@ export default async function EditPropertyPage({
   params: Promise<{ propertyId: string }>
 }) {
   const { propertyId } = await params
-  const organizationId = await getPrimaryOrganizationId()
-  const property = (await listProperties(organizationId)).find((p) => p.id === propertyId)
-  if (!property) return <p>Property not found</p>
+  const property = await requirePropertyAccess(propertyId)
 
   const boundAction = updatePropertyAction.bind(null, propertyId)
 

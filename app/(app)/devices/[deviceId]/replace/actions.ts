@@ -2,12 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { replaceDevice } from '@/lib/services/device-replacement'
+import { requireDeviceAccess } from '@/lib/auth-helpers'
 
 export async function replaceDeviceAction(
   oldDeviceId: string,
   propertyId: string,
   formData: FormData
 ) {
+  await requireDeviceAccess(oldDeviceId)
   const locationId = String(formData.get('locationId') ?? '')
   const category = String(formData.get('category') ?? '')
   const brand = String(formData.get('brand') ?? '')

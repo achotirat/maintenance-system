@@ -1,5 +1,6 @@
 import { getDeviceWithHistory } from '@/lib/services/devices'
 import { listLocations } from '@/lib/services/locations'
+import { requireDeviceAccess } from '@/lib/auth-helpers'
 import { replaceDeviceAction } from './actions'
 
 export default async function ReplaceDevicePage({
@@ -8,6 +9,7 @@ export default async function ReplaceDevicePage({
   params: Promise<{ deviceId: string }>
 }) {
   const { deviceId } = await params
+  await requireDeviceAccess(deviceId)
   const device = await getDeviceWithHistory(deviceId)
   if (!device) return <p>Device not found</p>
 

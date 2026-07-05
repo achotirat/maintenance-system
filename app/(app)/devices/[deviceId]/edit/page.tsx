@@ -1,4 +1,5 @@
 import { getDeviceWithHistory } from '@/lib/services/devices'
+import { requireDeviceAccess } from '@/lib/auth-helpers'
 import { updateDeviceAction } from './actions'
 
 export default async function EditDevicePage({
@@ -7,6 +8,7 @@ export default async function EditDevicePage({
   params: Promise<{ deviceId: string }>
 }) {
   const { deviceId } = await params
+  await requireDeviceAccess(deviceId)
   const device = await getDeviceWithHistory(deviceId)
   if (!device) return <p>Device not found</p>
 

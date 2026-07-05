@@ -1,6 +1,7 @@
 import { getDeviceWithHistory, warrantyStatus } from '@/lib/services/devices'
 import { listSchedulesForDevice } from '@/lib/services/maintenance-schedules'
 import { listTicketsForDevice, countTicketsForDevice } from '@/lib/services/repair-tickets'
+import { requireDeviceAccess } from '@/lib/auth-helpers'
 import { createScheduleAction, completeScheduleAction, createTicketAction, transitionTicketAction } from './actions'
 
 export default async function DeviceDetailPage({
@@ -9,6 +10,7 @@ export default async function DeviceDetailPage({
   params: Promise<{ deviceId: string }>
 }) {
   const { deviceId } = await params
+  await requireDeviceAccess(deviceId)
   const [device, schedules, tickets] = await Promise.all([
     getDeviceWithHistory(deviceId),
     listSchedulesForDevice(deviceId),

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { createDevice } from '@/lib/services/devices'
+import { requirePropertyAccess } from '@/lib/auth-helpers'
 
 export async function createDeviceAction(propertyId: string, formData: FormData) {
+  await requirePropertyAccess(propertyId)
   const locationId = String(formData.get('locationId') ?? '')
   const category = String(formData.get('category') ?? '')
   const brand = String(formData.get('brand') ?? '')
