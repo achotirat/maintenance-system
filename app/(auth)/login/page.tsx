@@ -2,7 +2,13 @@ import Link from "next/link";
 import { signIn } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   async function loginAction(formData: FormData) {
     "use server";
     try {
@@ -23,6 +29,11 @@ export default function LoginPage() {
       <div className="text-[13px] text-secondary mt-1 mb-[18px]">
         เข้าสู่ระบบเพื่อดูงานของคุณ
       </div>
+      {error && (
+        <div className="bg-[rgba(244,63,94,.08)] border border-[rgba(244,63,94,.2)] rounded-lg px-3 py-2 text-[12.5px] text-[#f43f5e] font-medium mb-3">
+          Invalid email or password. Please try again.
+        </div>
+      )}
       <form action={loginAction} className="flex flex-col gap-[11px]">
         <div>
           <div className="text-xs font-semibold text-secondary mb-[5px]">Email</div>

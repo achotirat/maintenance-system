@@ -1,13 +1,30 @@
 import Link from "next/link";
 import { signupAction } from "./actions";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+  const errorMsg =
+    error === "email-taken"
+      ? "This email is already registered. Try signing in instead."
+      : error
+        ? "Something went wrong. Please try again."
+        : null;
+
   return (
     <div className="w-[360px] max-w-full bg-[var(--card)] border border-line rounded-2xl shadow-card p-7">
       <div className="text-xl font-bold">Create your workspace</div>
       <div className="text-[13px] text-secondary mt-1 mb-[18px]">
         สร้างองค์กรและบัญชีผู้ดูแลในขั้นตอนเดียว
       </div>
+      {errorMsg && (
+        <div className="bg-[rgba(244,63,94,.08)] border border-[rgba(244,63,94,.2)] rounded-lg px-3 py-2 text-[12.5px] text-[#f43f5e] font-medium mb-3">
+          {errorMsg}
+        </div>
+      )}
       <form action={signupAction} className="flex flex-col gap-[11px]">
         <div>
           <div className="text-xs font-semibold text-secondary mb-[5px]">
