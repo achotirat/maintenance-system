@@ -13,6 +13,14 @@ export async function signupAction(formData: FormData) {
     throw new Error('All fields are required')
   }
 
-  await createOrganizationWithOwner({ organizationName, ownerEmail, ownerPassword, ownerName })
+  try {
+    await createOrganizationWithOwner({ organizationName, ownerEmail, ownerPassword, ownerName })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Signup failed'
+    if (msg.includes('Unique constraint')) {
+      redirect('/signup?error=email-taken')
+    }
+    redirect('/signup?error=unknown')
+  }
   redirect('/login')
 }

@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #f4f4f8;
+  --card: #ffffff;
+  --line: #e4e4ef;
+  --tx: #191830;
+  --tx2: #55557a;
+  --tx3: #9c9cb5;
+  --nav: #191830;
+  --hero1: #191830;
+  --hero2: #312e81;
+  --shadow: 0 4px 16px rgba(25, 24, 48, 0.08);
+  --input: #ffffff;
+}
+
+.dark {
+  --bg: #0d0c1d;
+  --card: #1a1932;
+  --line: #2b2a4a;
+  --tx: #f1f1f7;
+  --tx2: #9c9cb5;
+  --tx3: #5f5e84;
+  --nav: #100f22;
+  --hero1: #100f22;
+  --hero2: #2a2870;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --input: #131226;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -13,13 +41,39 @@ html {
 }
 
 body {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter Tight', 'Noto Sans Thai', system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #000;
-    color: #fff;
-  }
+a {
+  color: #5b5bd6;
+  text-decoration: none;
+}
+a:hover {
+  color: #4a4ac0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+input, select, textarea {
+  background: var(--input);
+  color: var(--tx);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid #5b5bd6;
+  outline-offset: -1px;
 }
